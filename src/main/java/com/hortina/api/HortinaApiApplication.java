@@ -1,4 +1,4 @@
-package com.hortina.hortina_api;
+package com.hortina.api;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

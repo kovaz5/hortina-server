@@ -14,11 +14,16 @@ import java.time.LocalDate;
 public class Cultivo {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id_cultivo;
+    @Column(name = "id_cultivo")
+    private Integer idCultivo;
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "id_usuario")
     private Usuario usuario;
+
+    @ManyToOne(optional = true)
+    @JoinColumn(name = "plant_profile_id")
+    private PlantProfile plantProfile;
 
     @Column(nullable = false)
     private String nombre;
@@ -28,7 +33,7 @@ public class Cultivo {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private CultivoEstado estado = CultivoEstado.semilla;
+    private CultivoEstado estado;
 
     @ManyToOne(optional = true)
     @JoinColumn(name = "id_ubicacion")

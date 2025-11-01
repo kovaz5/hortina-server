@@ -1,0 +1,45 @@
+package com.hortina.api.service;
+
+import com.hortina.api.domain.Cultivo;
+import com.hortina.api.domain.PlantProfile;
+import com.hortina.api.domain.Tarea;
+import com.hortina.api.repo.CultivoRepository;
+import com.hortina.api.repo.TareaRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
+import java.util.List;
+
+@Service
+public class TaskGenerationService {
+
+    private final Logger log = LoggerFactory.getLogger(TaskGenerationService.class);
+
+    private final PlantProfileService profileService;
+    private final CultivoRepository cultivoRepo;
+    private final TareaRepository tareaRepo;
+    private final CultivoRuleService ruleService;
+
+    public TaskGenerationService(PlantProfileService profileService,
+            CultivoRepository cultivoRepo,
+            TareaRepository tareaRepo,
+            CultivoRuleService ruleService) {
+        this.profileService = profileService;
+        this.cultivoRepo = cultivoRepo;
+        this.tareaRepo = tareaRepo;
+        this.ruleService = ruleService;
+    }
+
+    public void generateTasksForCultivo(Integer cultivoId, Integer plantApiId) throws Exception {
+        log.info("Generando tareas para cultivo ID {} con plantApiId {}", cultivoId, plantApiId);
+
+        Cultivo cultivo = cultivoRepo.findById(cultivoId)
+                .orElseThrow(() -> new Exception("Cultivo no encontrado " + cultivoId));
+
+        PlantProfile profile = profileService.fetchProfileByExternalId(plantApiId);
+        List<Tarea> tareas = ruleService.generateRulesBasedTasks(cultivo, profile);
+
+        tareas.forEach(t -> tareaRepo.save(t));
+        log.info("Se generaron {} tareas automáticas para {}", tareas.size(), cultivo.getNombre());
+    }
+}

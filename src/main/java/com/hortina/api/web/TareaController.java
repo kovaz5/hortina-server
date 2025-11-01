@@ -5,6 +5,8 @@ import com.hortina.api.domain.enums.TipoOrigen;
 import com.hortina.api.repo.*;
 import com.hortina.api.web.dto.TareaDTO;
 import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -28,6 +30,14 @@ public class TareaController {
     @GetMapping("/{id}")
     public Tarea get(@PathVariable Integer id) {
         return repo.findById(id).orElseThrow();
+    }
+
+    @GetMapping("/cultivo/{cultivoId}")
+    public List<Tarea> listByCultivo(@PathVariable Integer cultivoId) {
+        System.out.println("Consultando tareas del cultivo ID: " + cultivoId);
+        List<Tarea> tareas = repo.findByCultivo_IdCultivo(cultivoId);
+        System.out.println("Se encontraron " + tareas.size() + " tareas.");
+        return tareas;
     }
 
     @PostMapping
@@ -63,4 +73,12 @@ public class TareaController {
     public void delete(@PathVariable Integer id) {
         repo.deleteById(id);
     }
+
+    @GetMapping("/proximas")
+    public List<Tarea> listProximas(@RequestParam(required = false, defaultValue = "2") int dias) {
+        LocalDate hoy = LocalDate.now();
+        LocalDate limite = hoy.plusDays(dias);
+        return repo.findByCompletadaFalseAndFechaSugeridaBetween(hoy, limite);
+    }
+
 }

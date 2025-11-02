@@ -13,4 +13,7 @@ public interface CultivoRepository extends JpaRepository<Cultivo, Integer> {
     List<Cultivo> findByUsuarioAndEstado(Usuario u, CultivoEstado estado);
 
     List<Cultivo> findByUbicacion(Ubicacion ubicacion);
+
+    List<Cultivo> findByPlantProfile_ScientificName(String scientificName);
+
 }

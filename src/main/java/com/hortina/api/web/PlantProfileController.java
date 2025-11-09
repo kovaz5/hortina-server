@@ -6,7 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/plants")
+@RequestMapping({ "/api/plants", "/api/plantprofiles" })
 public class PlantProfileController {
 
     private final PlantProfileService profileService;
@@ -16,10 +16,10 @@ public class PlantProfileController {
     }
 
     @GetMapping("/{externalId}")
-    public ResponseEntity<?> getById(@PathVariable("externalId") int externalId) {
+    public ResponseEntity<?> getById(@PathVariable int externalId) {
         try {
             PlantProfile profile = profileService.fetchProfileByExternalId(externalId);
-            return ResponseEntity.ok(profile);
+            return ResponseEntity.ok(profileService.toDto(profile));
         } catch (Exception e) {
             return ResponseEntity.status(404).body("No encontrado: " + e.getMessage());
         }
@@ -28,7 +28,9 @@ public class PlantProfileController {
     @GetMapping("/search")
     public ResponseEntity<?> searchPlants(@RequestParam("query") String query) {
         try {
-            return ResponseEntity.ok(profileService.searchAndCachePlants(query));
+            var profiles = profileService.searchAndCachePlants(query);
+            var dtos = profiles.stream().map(p -> profileService.toDto(p)).toList();
+            return ResponseEntity.ok(dtos);
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body("Error al buscar plantas: " + e.getMessage());
         }

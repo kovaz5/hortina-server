@@ -111,6 +111,27 @@ public class CultivoService {
         return saved;
     }
 
+    @Transactional
+    public Cultivo updateCultivoFromDto(Integer id, CultivoDTO dto) throws Exception {
+        Cultivo cultivo = cultivoRepo.findById(id)
+                .orElseThrow(() -> new Exception("Cultivo no encontrado: " + id));
+
+        if (dto.nombre() != null)
+            cultivo.setNombre(dto.nombre());
+        if (dto.tipo() != null)
+            cultivo.setTipo(dto.tipo());
+        if (dto.estado() != null)
+            cultivo.setEstado(dto.estado());
+        if (dto.fecha_plantacion() != null)
+            cultivo.setFecha_plantacion(dto.fecha_plantacion());
+        if (dto.imagen() != null)
+            cultivo.setImagen(dto.imagen());
+        if (dto.fecha_estimada_cosecha() != null)
+            cultivo.setFecha_estimada_cosecha(dto.fecha_estimada_cosecha());
+
+        return cultivoRepo.save(cultivo);
+    }
+
     public List<Cultivo> listAll() {
         return cultivoRepo.findAll();
     }

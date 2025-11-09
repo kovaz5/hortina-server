@@ -70,6 +70,11 @@ public class CultivoController {
         return cultivoService.crearCultivoFromDto(dto);
     }
 
+    @PutMapping("/{id}")
+    public Cultivo update(@PathVariable Integer id, @RequestBody CultivoDTO dto) throws Exception {
+        return cultivoService.updateCultivoFromDto(id, dto);
+    }
+
     @DeleteMapping("/{id}")
     public void delete(@PathVariable Integer id) throws Exception {
         cultivoService.deleteById(id);

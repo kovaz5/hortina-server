@@ -2,6 +2,7 @@ package com.hortina.api.service;
 
 import com.hortina.api.domain.PlantProfile;
 import com.hortina.api.repo.PlantProfileRepository;
+import com.hortina.api.web.dto.PlantProfileDTO;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
@@ -128,13 +129,11 @@ public class PlantProfileService {
                 String scientific = plantNode.path("scientific_name").asText("");
                 String imageUrl = null;
 
-                // En los resultados de búsqueda puede venir la miniatura
                 JsonNode images = plantNode.path("images");
                 if (images.has("thumb")) {
                     imageUrl = images.path("thumb").asText(null);
                 }
 
-                // Buscar si ya existe localmente
                 PlantProfile profile = profileRepo.findByExternalId(externalId)
                         .orElseGet(PlantProfile::new);
 
@@ -142,12 +141,10 @@ public class PlantProfileService {
                 profile.setCommonName(name);
                 profile.setScientificName(scientific.toLowerCase());
 
-                // Guardamos la imagen si viene en la búsqueda
                 if (imageUrl != null) {
                     profile.setImageUrl(imageUrl);
                 }
 
-                // Solo actualizamos rawJson y lastFetched si el perfil no existía antes
                 if (profile.getId() == null) {
                     profile.setRawJson(plantNode.toString());
                     profile.setLastFetched(LocalDateTime.now());
@@ -159,6 +156,15 @@ public class PlantProfileService {
         }
 
         return profiles;
+    }
+
+    public PlantProfileDTO toDto(PlantProfile p) {
+        return new PlantProfileDTO(
+                p.getId(),
+                p.getExternalId(),
+                p.getCommonName(),
+                p.getScientificName(),
+                p.getImageUrl());
     }
 
 }

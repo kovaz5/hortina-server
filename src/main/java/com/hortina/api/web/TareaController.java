@@ -69,6 +69,13 @@ public class TareaController {
         return repo.save(t);
     }
 
+    @PatchMapping("/{id}/estado")
+    public Tarea actualizarEstado(@PathVariable Integer id, @RequestParam boolean completada) {
+        Tarea tarea = repo.findById(id).orElseThrow();
+        tarea.setCompletada(completada);
+        return repo.save(tarea);
+    }
+
     @DeleteMapping("/{id}")
     public void delete(@PathVariable Integer id) {
         repo.deleteById(id);

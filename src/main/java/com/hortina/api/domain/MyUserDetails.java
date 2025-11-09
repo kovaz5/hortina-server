@@ -13,19 +13,23 @@ public class MyUserDetails implements UserDetails {
         this.usuario = usuario;
     }
 
+    public Usuario getUsuario() {
+        return usuario;
+    }
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return null; // De momento no vamos a usar roles
+        return null;
     }
 
     @Override
     public String getPassword() {
-        return usuario.getPassword_hash(); // Tu columna de password en la DB
+        return usuario.getPassword_hash();
     }
 
     @Override
     public String getUsername() {
-        return usuario.getEmail(); // O el campo que uses como login
+        return usuario.getEmail();
     }
 
     @Override

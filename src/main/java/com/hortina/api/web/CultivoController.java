@@ -7,6 +7,7 @@ import com.hortina.api.web.dto.CultivoDetalleDTO;
 import com.hortina.api.web.dto.TareaDTO;
 import com.hortina.api.repo.TareaRepository;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
@@ -23,13 +24,24 @@ public class CultivoController {
     }
 
     @GetMapping
-    public List<Cultivo> list() {
-        return cultivoService.listAll();
+    public ResponseEntity<?> listAll() {
+        try {
+            return ResponseEntity.ok(cultivoService.listAll());
+        } catch (Exception e) {
+            return ResponseEntity.status(401).body("No autorizado: " + e.getMessage());
+        }
     }
 
     @GetMapping("/{id}")
-    public Cultivo get(@PathVariable Integer id) throws Exception {
-        return cultivoService.getById(id);
+    public ResponseEntity<?> getById(@PathVariable Integer id) {
+        try {
+            Cultivo cultivo = cultivoService.getById(id);
+            return ResponseEntity.ok(cultivo);
+        } catch (SecurityException e) {
+            return ResponseEntity.status(403).body("Acceso denegado: " + e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(404).body("Error: " + e.getMessage());
+        }
     }
 
     @GetMapping("/{id}/detalle")
@@ -53,13 +65,15 @@ public class CultivoController {
                 .map(t -> new TareaDTO(
                         t.getId_tarea(),
                         t.getCultivo().getIdCultivo(),
-                        t.getNombre_tarea(),
+                        t.getNombreTarea(),
                         t.getDescripcion(),
                         t.getFechaSugerida(),
                         t.getCompletada(),
                         t.getTipo_origen().name(),
                         t.getRegla() != null ? t.getRegla().getId_regla() : null,
-                        t.getCreated_at()))
+                        t.getCreated_at(),
+                        t.getRecurrente(),
+                        t.getFrecuenciaDias()))
                 .toList();
 
         return new CultivoDetalleDTO(cultivoDto, tareaDtos);
@@ -71,13 +85,26 @@ public class CultivoController {
     }
 
     @PutMapping("/{id}")
-    public Cultivo update(@PathVariable Integer id, @RequestBody CultivoDTO dto) throws Exception {
-        return cultivoService.updateCultivoFromDto(id, dto);
+    public ResponseEntity<?> update(@PathVariable Integer id, @RequestBody CultivoDTO dto) {
+        try {
+            return ResponseEntity.ok(cultivoService.updateCultivoFromDto(id, dto));
+        } catch (SecurityException e) {
+            return ResponseEntity.status(403).body("Acceso denegado: " + e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(400).body("Error al actualizar: " + e.getMessage());
+        }
     }
 
     @DeleteMapping("/{id}")
-    public void delete(@PathVariable Integer id) throws Exception {
-        cultivoService.deleteById(id);
+    public ResponseEntity<?> delete(@PathVariable Integer id) {
+        try {
+            cultivoService.deleteById(id);
+            return ResponseEntity.ok("Cultivo eliminado correctamente");
+        } catch (SecurityException e) {
+            return ResponseEntity.status(403).body("Acceso denegado: " + e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(400).body("Error al eliminar: " + e.getMessage());
+        }
     }
 
 }

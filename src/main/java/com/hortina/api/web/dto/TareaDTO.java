@@ -11,5 +11,7 @@ public record TareaDTO(
         Boolean completada,
         String tipo_origen,
         Integer id_regla,
-        LocalDate created_at) {
+        LocalDate created_at,
+        Boolean recurrente,
+        Integer frecuenciaDias) {
 }

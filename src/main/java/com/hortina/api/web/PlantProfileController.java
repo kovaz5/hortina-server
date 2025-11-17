@@ -28,11 +28,10 @@ public class PlantProfileController {
     @GetMapping("/search")
     public ResponseEntity<?> searchPlants(@RequestParam("query") String query) {
         try {
-            var profiles = profileService.searchAndCachePlants(query);
-            var dtos = profiles.stream().map(p -> profileService.toDto(p)).toList();
-            return ResponseEntity.ok(dtos);
+            return ResponseEntity.ok(profileService.searchPlants(query));
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().body("Error al buscar plantas: " + e.getMessage());
+            return ResponseEntity.internalServerError()
+                    .body("Error al buscar plantas: " + e.getMessage());
         }
     }
 

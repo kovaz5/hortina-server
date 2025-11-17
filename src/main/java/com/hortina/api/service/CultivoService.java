@@ -9,6 +9,8 @@ import com.hortina.api.repo.UbicacionRepository;
 import com.hortina.api.web.dto.CultivoDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -41,11 +43,16 @@ public class CultivoService {
     public Cultivo crearCultivoFromDto(CultivoDTO dto) throws Exception {
         Cultivo cultivo = new Cultivo();
 
-        if (dto.id_usuario() != null) {
-            Usuario usuario = usuarioRepo.findById(dto.id_usuario())
-                    .orElseThrow(() -> new IllegalArgumentException("Usuario no existe: " + dto.id_usuario()));
-            cultivo.setUsuario(usuario);
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || auth.getName() == null) {
+            throw new IllegalStateException("No se pudo determinar el usuario autenticado");
         }
+
+        String username = auth.getName();
+        Usuario usuario = usuarioRepo.findByEmail(username)
+                .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado: " + username));
+
+        cultivo.setUsuario(usuario);
 
         if (dto.id_ubicacion() != null) {
             ubicacionRepo.findById(dto.id_ubicacion())
@@ -75,6 +82,7 @@ public class CultivoService {
                 ? dto.imagen()
                 : (profile != null ? profile.getImageUrl() : null);
         cultivo.setImagen(imagen);
+
         cultivo.setFecha_plantacion(dto.fecha_plantacion());
         cultivo.setEstado(dto.estado());
 
@@ -89,9 +97,9 @@ public class CultivoService {
             };
             cultivo.setFecha_estimada_cosecha(dto.fecha_plantacion().plusDays(diasEstimados));
         }
-
         Cultivo saved = cultivoRepo.save(cultivo);
-        log.info("Cultivo guardado correctamente: {} (ID: {})", saved.getNombre(), saved.getIdCultivo());
+        log.info("Cultivo guardado correctamente: {} (ID: {}) por usuario {}",
+                saved.getNombre(), saved.getIdCultivo(), usuario.getEmail());
 
         if (saved.getPlantProfile() != null) {
             try {
@@ -113,8 +121,21 @@ public class CultivoService {
 
     @Transactional
     public Cultivo updateCultivoFromDto(Integer id, CultivoDTO dto) throws Exception {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || auth.getName() == null) {
+            throw new IllegalStateException("Usuario no autenticado");
+        }
+
+        String username = auth.getName();
+        Usuario usuario = usuarioRepo.findByEmail(username)
+                .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado: " + username));
+
         Cultivo cultivo = cultivoRepo.findById(id)
                 .orElseThrow(() -> new Exception("Cultivo no encontrado: " + id));
+
+        if (!cultivo.getUsuario().getId_usuario().equals(usuario.getId_usuario())) {
+            throw new SecurityException("No tienes permiso para modificar este cultivo");
+        }
 
         if (dto.nombre() != null)
             cultivo.setNombre(dto.nombre());
@@ -132,19 +153,57 @@ public class CultivoService {
         return cultivoRepo.save(cultivo);
     }
 
-    public List<Cultivo> listAll() {
-        return cultivoRepo.findAll();
+    public List<Cultivo> listAll() throws Exception {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || auth.getName() == null) {
+            throw new IllegalStateException("No se pudo determinar el usuario autenticado");
+        }
+
+        String username = auth.getName(); // email del usuario
+        Usuario usuario = usuarioRepo.findByEmail(username)
+                .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado: " + username));
+
+        return cultivoRepo.findByUsuario(usuario);
     }
 
     public Cultivo getById(Integer id) throws Exception {
-        return cultivoRepo.findById(id)
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || auth.getName() == null) {
+            throw new IllegalStateException("Usuario no autenticado");
+        }
+
+        String username = auth.getName();
+        Usuario usuario = usuarioRepo.findByEmail(username)
+                .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado: " + username));
+
+        Cultivo cultivo = cultivoRepo.findById(id)
                 .orElseThrow(() -> new Exception("Cultivo no encontrado: " + id));
+
+        if (!cultivo.getUsuario().getId_usuario().equals(usuario.getId_usuario())) {
+            throw new SecurityException("No tienes permiso para acceder a este cultivo");
+        }
+
+        return cultivo;
     }
 
     public void deleteById(Integer id) throws Exception {
-        if (!cultivoRepo.existsById(id)) {
-            throw new Exception("Cultivo no encontrado: " + id);
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || auth.getName() == null) {
+            throw new IllegalStateException("Usuario no autenticado");
         }
+
+        String username = auth.getName();
+        Usuario usuario = usuarioRepo.findByEmail(username)
+                .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado: " + username));
+
+        Cultivo cultivo = cultivoRepo.findById(id)
+                .orElseThrow(() -> new Exception("Cultivo no encontrado: " + id));
+
+        if (!cultivo.getUsuario().getId_usuario().equals(usuario.getId_usuario())) {
+            throw new SecurityException("No tienes permiso para eliminar este cultivo");
+        }
+
         cultivoRepo.deleteById(id);
     }
+
 }

@@ -1,5 +1,6 @@
 package com.hortina.api.domain;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.hortina.api.domain.enums.TipoOrigen;
 import jakarta.persistence.*;
 import lombok.*;
@@ -20,8 +21,9 @@ public class Tarea {
     @JoinColumn(name = "id_cultivo")
     private Cultivo cultivo;
 
-    @Column(nullable = false)
-    private String nombre_tarea;
+    @JsonProperty("nombre_tarea")
+    @Column(name = "nombre_tarea")
+    private String nombreTarea;
 
     @Lob
     private String descripcion;
@@ -42,4 +44,10 @@ public class Tarea {
 
     @Column(nullable = false)
     private LocalDate created_at = LocalDate.now();
+
+    @Column(nullable = false)
+    private Boolean recurrente = false;
+
+    @Column(name = "frecuencia_dias", nullable = false)
+    private Integer frecuenciaDias = 0;
 }

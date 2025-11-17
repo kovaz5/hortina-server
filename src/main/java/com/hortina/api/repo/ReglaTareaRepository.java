@@ -10,4 +10,6 @@ public interface ReglaTareaRepository extends JpaRepository<ReglaTarea, Integer>
 
     List<ReglaTarea> findByActivoTrue();
 
+    List<ReglaTarea> findByAccionIgnoreCase(String accion);
+
 }

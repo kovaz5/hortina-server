@@ -8,6 +8,7 @@ import com.hortina.api.repo.TareaRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+
 import java.util.List;
 
 @Service
@@ -20,7 +21,8 @@ public class TaskGenerationService {
     private final TareaRepository tareaRepo;
     private final CultivoRuleService ruleService;
 
-    public TaskGenerationService(PlantProfileService profileService,
+    public TaskGenerationService(
+            PlantProfileService profileService,
             CultivoRepository cultivoRepo,
             TareaRepository tareaRepo,
             CultivoRuleService ruleService) {
@@ -30,16 +32,32 @@ public class TaskGenerationService {
         this.ruleService = ruleService;
     }
 
+    /**
+     * Genera y persiste tareas automáticas para un cultivo en base al perfil de la
+     * API.
+     * Evita duplicados por cultivo + fecha + nombre_tarea.
+     */
     public void generateTasksForCultivo(Integer cultivoId, Integer plantApiId) throws Exception {
-        log.info("Generando tareas para cultivo ID {} con plantApiId {}", cultivoId, plantApiId);
+        log.info("Generando tareas automáticas para cultivo {} (apiId {})", cultivoId, plantApiId);
 
         Cultivo cultivo = cultivoRepo.findById(cultivoId)
-                .orElseThrow(() -> new Exception("Cultivo no encontrado " + cultivoId));
+                .orElseThrow(() -> new Exception("Cultivo no encontrado: " + cultivoId));
 
         PlantProfile profile = profileService.fetchProfileByExternalId(plantApiId);
+
         List<Tarea> tareas = ruleService.generateRulesBasedTasks(cultivo, profile);
 
-        tareas.forEach(t -> tareaRepo.save(t));
-        log.info("Se generaron {} tareas automáticas para {}", tareas.size(), cultivo.getNombre());
+        int creadas = 0;
+        for (Tarea t : tareas) {
+            boolean exists = tareaRepo.existsByCultivoAndFechaSugeridaAndNombreTarea(
+                    cultivo, t.getFechaSugerida(), t.getNombreTarea());
+
+            if (!exists) {
+                tareaRepo.save(t);
+                creadas++;
+            }
+        }
+
+        log.info("Tareas automáticas insertadas: {} (de {})", creadas, tareas.size());
     }
 }

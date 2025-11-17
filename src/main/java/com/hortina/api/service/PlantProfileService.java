@@ -3,6 +3,7 @@ package com.hortina.api.service;
 import com.hortina.api.domain.PlantProfile;
 import com.hortina.api.repo.PlantProfileRepository;
 import com.hortina.api.web.dto.PlantProfileDTO;
+import com.hortina.api.web.dto.PlantSearchDTO;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
@@ -104,12 +105,14 @@ public class PlantProfileService {
         return profileRepo.save(profile);
     }
 
-    public List<PlantProfile> searchAndCachePlants(String query) throws Exception {
-        String uri = "/plants/?search=" + query;
-        log.info("Buscando en Permapeople: {}", uri);
+    public List<PlantSearchDTO> searchPlants(String query) throws Exception {
+        String uri = "/search";
+        log.info("Buscando plantas en Permapeople (POST /search): {}", query);
 
-        String json = plantApiClient.get()
+        String json = plantApiClient.post()
                 .uri(uri)
+                .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                .bodyValue("{\"q\":\"" + query + "\"}")
                 .retrieve()
                 .bodyToMono(String.class)
                 .block();
@@ -120,7 +123,7 @@ public class PlantProfileService {
         JsonNode root = mapper.readTree(json);
         JsonNode results = root.path("plants");
 
-        List<PlantProfile> profiles = new ArrayList<>();
+        List<PlantSearchDTO> list = new ArrayList<>();
 
         if (results.isArray()) {
             for (JsonNode plantNode : results) {
@@ -134,28 +137,15 @@ public class PlantProfileService {
                     imageUrl = images.path("thumb").asText(null);
                 }
 
-                PlantProfile profile = profileRepo.findByExternalId(externalId)
-                        .orElseGet(PlantProfile::new);
-
-                profile.setExternalId(externalId);
-                profile.setCommonName(name);
-                profile.setScientificName(scientific.toLowerCase());
-
-                if (imageUrl != null) {
-                    profile.setImageUrl(imageUrl);
-                }
-
-                if (profile.getId() == null) {
-                    profile.setRawJson(plantNode.toString());
-                    profile.setLastFetched(LocalDateTime.now());
-                }
-
-                profileRepo.save(profile);
-                profiles.add(profile);
+                list.add(new PlantSearchDTO(
+                        externalId,
+                        name,
+                        scientific,
+                        imageUrl));
             }
         }
 
-        return profiles;
+        return list;
     }
 
     public PlantProfileDTO toDto(PlantProfile p) {
@@ -164,7 +154,13 @@ public class PlantProfileService {
                 p.getExternalId(),
                 p.getCommonName(),
                 p.getScientificName(),
-                p.getImageUrl());
+                p.getImageUrl(),
+                p.getWatering(),
+                p.getSunlight(),
+                p.getCareLevel(),
+                p.getLifeCycle(),
+                p.getHeight(),
+                p.getEdibleParts());
     }
 
 }

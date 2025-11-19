@@ -2,6 +2,9 @@ package com.hortina.api.service;
 
 import com.hortina.api.domain.Tarea;
 import com.hortina.api.repo.TareaRepository;
+
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,6 +20,16 @@ public class TaskSchedulerService {
 
     public TaskSchedulerService(TareaRepository tareaRepo) {
         this.tareaRepo = tareaRepo;
+    }
+
+    /**
+     * Execútase o scheduler ao iniciar o servidor porque en desarrollo non
+     * o teño sempre en execución.
+     */
+    @EventListener(ApplicationReadyEvent.class)
+    public void onStartup() {
+        System.out.println("[Scheduler] Ejecutando actualización  al iniciar el servidor...");
+        processDailyTasks();
     }
 
     /**

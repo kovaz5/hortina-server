@@ -68,7 +68,7 @@ public class PlantProfileService {
                 String key = n.path("key").asText("");
                 String value = n.path("value").asText("");
                 if (value.isBlank())
-                    continue; // ignorar vacíos
+                    continue;
 
                 switch (key) {
                     case "Water requirement" -> watering = value;

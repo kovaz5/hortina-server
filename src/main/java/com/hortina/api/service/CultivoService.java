@@ -5,7 +5,6 @@ import com.hortina.api.domain.PlantProfile;
 import com.hortina.api.domain.Usuario;
 import com.hortina.api.repo.CultivoRepository;
 import com.hortina.api.repo.UsuarioRepository;
-import com.hortina.api.repo.UbicacionRepository;
 import com.hortina.api.web.dto.CultivoDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,18 +22,15 @@ public class CultivoService {
 
     private final CultivoRepository cultivoRepo;
     private final UsuarioRepository usuarioRepo;
-    private final UbicacionRepository ubicacionRepo;
     private final PlantProfileService plantProfileService;
     private final TaskGenerationService taskGenerationService;
 
     public CultivoService(CultivoRepository cultivoRepo,
             UsuarioRepository usuarioRepo,
-            UbicacionRepository ubicacionRepo,
             PlantProfileService plantProfileService,
             TaskGenerationService taskGenerationService) {
         this.cultivoRepo = cultivoRepo;
         this.usuarioRepo = usuarioRepo;
-        this.ubicacionRepo = ubicacionRepo;
         this.plantProfileService = plantProfileService;
         this.taskGenerationService = taskGenerationService;
     }
@@ -53,14 +49,6 @@ public class CultivoService {
                 .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado: " + username));
 
         cultivo.setUsuario(usuario);
-
-        if (dto.id_ubicacion() != null) {
-            ubicacionRepo.findById(dto.id_ubicacion())
-                    .ifPresentOrElse(
-                            cultivo::setUbicacion,
-                            () -> log.warn("Ubicación no encontrada: {} — se guarda sin ubicación.",
-                                    dto.id_ubicacion()));
-        }
 
         PlantProfile profile = null;
         if (dto.plantExternalId() != null) {
@@ -159,7 +147,7 @@ public class CultivoService {
             throw new IllegalStateException("No se pudo determinar el usuario autenticado");
         }
 
-        String username = auth.getName(); // email del usuario
+        String username = auth.getName();
         Usuario usuario = usuarioRepo.findByEmail(username)
                 .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado: " + username));
 

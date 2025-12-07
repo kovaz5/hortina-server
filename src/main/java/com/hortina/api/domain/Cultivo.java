@@ -35,10 +35,6 @@ public class Cultivo {
     @Column(nullable = false)
     private CultivoEstado estado;
 
-    @ManyToOne(optional = true)
-    @JoinColumn(name = "id_ubicacion")
-    private Ubicacion ubicacion;
-
     @Lob
     private String imagen;
 

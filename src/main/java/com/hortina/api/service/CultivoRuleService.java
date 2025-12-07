@@ -10,12 +10,6 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Generador de tareas automáticas basadas EXCLUSIVAMENTE en el perfil de la API
- * (Permapeople).
- * Genera series completas (plantación -> cosecha) y asigna 'frecuenciaDias' y
- * 'recurrente'.
- */
 @Service
 public class CultivoRuleService {
 
@@ -26,19 +20,16 @@ public class CultivoRuleService {
                 ? cultivo.getFecha_plantacion()
                 : LocalDate.now();
 
-        // Detectar si es semilla
         boolean isSeed = cultivo.getEstado() != null
                 && cultivo.getEstado().name().equalsIgnoreCase("semilla");
 
-        // --- SERIES AUTOMÁTICAS ---
         tareas.addAll(generateWateringTasks(cultivo, profile, baseDate, isSeed));
 
-        if (!isSeed) { // Solo plantas adultas
+        if (!isSeed) {
             tareas.addAll(generateFertilizingTasks(cultivo, profile, baseDate));
             tareas.addAll(generatePruningTasks(cultivo, profile, baseDate));
         }
 
-        // --- NO RECURRENTES ---
         tareas.addAll(generateSunlightTask(cultivo, profile, baseDate));
         tareas.addAll(generateHarvestTask(cultivo, profile, baseDate));
 
@@ -50,14 +41,13 @@ public class CultivoRuleService {
         List<Tarea> out = new ArrayList<>();
         int frecuencia = mapWateringToDays(profile.getWatering());
 
-        // Ajustar riego para semillas
         if (isSeed) {
             frecuencia = Math.max(1, frecuencia - 2);
         }
 
         Tarea t = new Tarea();
         t.setCultivo(cultivo);
-        t.setNombreTarea("Riego");
+        t.setNombreTarea("Regar");
         t.setDescripcion("Riego según perfil ("
                 + profile.getWatering()
                 + ")"
@@ -187,7 +177,6 @@ public class CultivoRuleService {
         return out;
     }
 
-    // Utilidades
     private int mapWateringToDays(String watering) {
         if (watering == null)
             return 4;

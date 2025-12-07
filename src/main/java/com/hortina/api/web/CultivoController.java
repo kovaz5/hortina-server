@@ -4,6 +4,7 @@ import com.hortina.api.domain.*;
 import com.hortina.api.service.CultivoService;
 import com.hortina.api.web.dto.CultivoDTO;
 import com.hortina.api.web.dto.CultivoDetalleDTO;
+import com.hortina.api.web.dto.PlantProfileDTO;
 import com.hortina.api.web.dto.TareaDTO;
 import com.hortina.api.repo.TareaRepository;
 
@@ -53,13 +54,30 @@ public class CultivoController {
                 cultivo.getIdCultivo(),
                 cultivo.getUsuario() != null ? cultivo.getUsuario().getId_usuario() : null,
                 cultivo.getPlantProfile() != null ? cultivo.getPlantProfile().getExternalId() : null,
-                cultivo.getUbicacion() != null ? cultivo.getUbicacion().getId_ubicacion() : null,
                 cultivo.getNombre(),
                 cultivo.getTipo(),
                 cultivo.getFecha_plantacion(),
                 cultivo.getEstado(),
                 cultivo.getImagen(),
                 cultivo.getFecha_estimada_cosecha());
+
+        PlantProfileDTO plantDto = null;
+        if (cultivo.getPlantProfile() != null) {
+            PlantProfile p = cultivo.getPlantProfile();
+            plantDto = new PlantProfileDTO(
+                    p.getId(),
+                    p.getExternalId(),
+                    p.getCommonName(),
+                    p.getScientificName(),
+                    p.getImageUrl(),
+                    p.getWatering(),
+                    p.getSunlight(),
+                    p.getCareLevel(),
+                    p.getLifeCycle(),
+                    p.getHeight(),
+                    p.getEdibleParts()
+            );
+        }
 
         List<TareaDTO> tareaDtos = tareas.stream()
                 .map(t -> new TareaDTO(
@@ -76,7 +94,7 @@ public class CultivoController {
                         t.getFrecuenciaDias()))
                 .toList();
 
-        return new CultivoDetalleDTO(cultivoDto, tareaDtos);
+        return new CultivoDetalleDTO(cultivoDto, tareaDtos, plantDto);
     }
 
     @PostMapping

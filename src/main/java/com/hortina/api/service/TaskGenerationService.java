@@ -32,11 +32,6 @@ public class TaskGenerationService {
         this.ruleService = ruleService;
     }
 
-    /**
-     * Genera y persiste tareas automáticas para un cultivo en base al perfil de la
-     * API.
-     * Evita duplicados por cultivo + fecha + nombre_tarea.
-     */
     public void generateTasksForCultivo(Integer cultivoId, Integer plantApiId) throws Exception {
         log.info("Generando tareas automáticas para cultivo {} (apiId {})", cultivoId, plantApiId);
 

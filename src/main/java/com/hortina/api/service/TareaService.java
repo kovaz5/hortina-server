@@ -1,7 +1,6 @@
 package com.hortina.api.service;
 
 import com.hortina.api.domain.Cultivo;
-import com.hortina.api.domain.ReglaTarea;
 import com.hortina.api.domain.Tarea;
 import com.hortina.api.domain.Usuario;
 import com.hortina.api.domain.enums.TipoOrigen;
@@ -83,7 +82,7 @@ public class TareaService {
         tarea.setCultivo(cultivo);
         tarea.setNombreTarea(dto.nombre_tarea());
         tarea.setDescripcion(dto.descripcion());
-        tarea.setFechaSugerida(dto.fecha_sugerida());
+        tarea.setFechaSugerida(dto.fechaSugerida());
         tarea.setCompletada(dto.completada() != null ? dto.completada() : false);
         tarea.setTipo_origen(dto.tipo_origen() != null ? TipoOrigen.valueOf(dto.tipo_origen()) : TipoOrigen.manual);
         tarea.setCreated_at(dto.created_at() != null ? dto.created_at() : LocalDate.now());
